@@ -42,8 +42,9 @@ namespace TrustPilot
             foreach (string word in AllWords)
             {
                 cleanedWord = word.Replace(" ", "");
-
-                if (Cost.TryGetCost(cleanedWord, out ulong value))
+                ////
+                ulong value = 0;
+                if (Cost.TryGetCost(cleanedWord,out value))
                 {
                     difference = Cost.PhraseCost - value;
                     if ((difference & Cost.Mask) == 0)
