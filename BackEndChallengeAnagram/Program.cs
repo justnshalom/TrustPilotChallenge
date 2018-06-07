@@ -11,12 +11,12 @@ namespace BackEndChallengeAnagram
         static void Main(string[] args)
         {
             var anagramPhrase = "poultry outwits ants";
-
-            anagramPhrase = "pastils turnout towy";
+            anagramPhrase = "printout stout yawls";
             var encryptedString = Utilities.MD5Hash(anagramPhrase);
             Console.Write(encryptedString);
 
-
+            Console.WriteLine("\nPress any key to exit.");
+            Console.ReadLine();
         }
     }
 }
