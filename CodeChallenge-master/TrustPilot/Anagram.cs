@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace TrustPilot
 {
@@ -92,7 +93,7 @@ namespace TrustPilot
             {
                 NumberOfPermutations++;
                 // uncomment this line to print anagrams
-                // Console.WriteLine(string.Join(" ", arrangement.ToArray()));
+                Console.WriteLine("anagrams >" +string.Join(" ", arrangement.ToArray()));
                 return string.Join(" ", arrangement.ToArray());
             }
 
@@ -103,7 +104,7 @@ namespace TrustPilot
                 {
                     arrangement.Push(word);
                     string partialResult = GenerateArrangements(wordCount, arrangement);
-
+                    Console.WriteLine("Checking -> " + partialResult);
                     if (partialResult != null && Hash == MD5Hash.Calculate(partialResult))
                     {
                         return partialResult;
