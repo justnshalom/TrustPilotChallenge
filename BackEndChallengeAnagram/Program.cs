@@ -64,8 +64,10 @@ namespace BackEndChallengeAnagram
         private static List<string> secretphases = new List<string> { "e4820b45d2277f3844eac66c903e84be", "23170acc097c24edb98fc5488ab033fe", "665e5bcb0c20062fe8abaaf4628bb154" };
         public static bool FoundAllWords = false;
         public static List<string> List=new List<string>();
+
         public static List<List<int>> permutations = new List<List<int>>();
-        private static void RecursivePhraseFinder(int level, List<int> usedwords = null, double currentphraseValue = 0)
+
+        private static void RecursivePhraseFinder(int level, List<int> usedwords = null, double currentphraseValue = 0, int currenti = 0)
         {
             if (!FoundAllWords)
             {
@@ -77,30 +79,36 @@ namespace BackEndChallengeAnagram
                         var degreeOfParallelism = Environment.ProcessorCount / 2;
 
                         var tasks = new Task[degreeOfParallelism];
-
+                        
                         for (int taskNumber = 0; taskNumber < degreeOfParallelism; taskNumber++)
                         {
                             int taskNumberCopy = taskNumber;
-
                             tasks[taskNumber] = Task.Factory.StartNew(
                                 () =>
-                                {
+                                    {
+                                       
                                     var max = integerwordsList.Count * (taskNumberCopy + 1) / degreeOfParallelism;
-                                    for (int i = integerwordsList.Count * taskNumberCopy / degreeOfParallelism;
+                                        var startsfrom = (integerwordsList.Count * taskNumberCopy / degreeOfParallelism);
+                                        if (currenti > startsfrom)
+                                        {
+                                            startsfrom = currenti;
+                                        }
+                                    for (int i = startsfrom;
                                         i < max;
                                         i++)
-                                    {
+                                    {  
                                         var currentvalue = integerwordsList[i] + currentphraseValue;
                                         if (currentvalue <= phraseValue)
                                         {
                                             var usedWordsNow = new List<int>();
                                             usedWordsNow.AddRange(usedwords);
                                             usedWordsNow.Add(i);
-                                            if (usedwords.Contains(1639) && i == 127)
+                                            if (usedwords.Contains(1639) && usedwords.Contains(1639)&& i == 127)
                                             {
 
                                             }
-                                            RecursivePhraseFinder(newLevel, usedWordsNow, currentvalue);
+                                            
+                                                RecursivePhraseFinder(newLevel, usedWordsNow, currentvalue,i);
 
                                         }
 
@@ -115,17 +123,18 @@ namespace BackEndChallengeAnagram
                 {
                     var phrase = string.Join(" ", usedwords.Select(x => stringwordsList[x]));
                     var encryptedString = Utilities.MD5Hash(phrase);
+                    ////Console.WriteLine("\n" + phrase);
                     if (secretphases.Contains(encryptedString))
                     {
                         Console.Write("\nFound " + encryptedString + " of " + phrase + " in " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
                         List.Add(phrase);
                         if (List.Count() < secretphases.Count())
                         {
-                            Console.WriteLine("started finding next one");
+                            Console.WriteLine("\nstarted finding next one");
                         }
                         else
                         {
-                            Console.WriteLine("Founded All phases");
+                            Console.WriteLine("\nFounded All phases");
                             Console.WriteLine("\nPress any key to exit.");
                             Console.ReadLine();
                         }
