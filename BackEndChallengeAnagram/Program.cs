@@ -47,9 +47,14 @@ namespace BackEndChallengeAnagram
 
             phraseValue = chracterGroup.Sum(x => alphabetsList[x.Key] * x.Value);
 
+            ////var validwords=integerwordsList.SelectMany(x => x == phraseValue?x: x < phraseValue?integerwordsList.Where(y => x+y< phraseValue && &integerwordsList.Where(z => x + z < phraseValue);
+
             timer = Stopwatch.StartNew();
             ////RecursivePhraseFinder(string.Empty, 0);
             Console.WriteLine("started finding first one");
+
+
+
             RecursivePhraseFinder(0, new List<int>(),0);
             Console.WriteLine("\nPress any key to exit.");
             Console.ReadLine();
@@ -91,8 +96,12 @@ namespace BackEndChallengeAnagram
                                             var usedWordsNow = new List<int>();
                                             usedWordsNow.AddRange(usedwords);
                                             usedWordsNow.Add(i);
+                                            if (usedwords.Contains(1639) && i == 127)
+                                            {
 
+                                            }
                                             RecursivePhraseFinder(newLevel, usedWordsNow, currentvalue);
+
                                         }
 
                                     }
@@ -123,7 +132,76 @@ namespace BackEndChallengeAnagram
                     }
                 }
             }
-            
+
         }
+        ////private static void RecursivePhraseFinder(int level, List<int> usedwords = null, double currentphraseValue = 0)
+        ////{
+        ////    if (!FoundAllWords)
+        ////    {
+        ////        if (currentphraseValue < phraseValue)
+        ////        {
+        ////            var newLevel = level + 1;
+        ////            if (newLevel <= maxLevel)
+        ////            {
+        ////                var degreeOfParallelism = Environment.ProcessorCount / 2;
+
+        ////                var tasks = new Task[degreeOfParallelism];
+
+        ////                for (int taskNumber = 0; taskNumber < degreeOfParallelism; taskNumber++)
+        ////                {
+        ////                    int taskNumberCopy = taskNumber;
+
+        ////                    tasks[taskNumber] = Task.Factory.StartNew(
+        ////                        () =>
+        ////                        {
+        ////                            var max = integerwordsList.Count * (taskNumberCopy + 1) / degreeOfParallelism;
+        ////                            for (int i = integerwordsList.Count * taskNumberCopy / degreeOfParallelism;
+        ////                                i < max;
+        ////                                i++)
+        ////                            {
+        ////                                var currentvalue = integerwordsList[i] + currentphraseValue;
+        ////                                if (currentvalue <= phraseValue)
+        ////                                {
+        ////                                    var usedWordsNow = new List<int>();
+        ////                                    usedWordsNow.AddRange(usedwords);
+        ////                                    usedWordsNow.Add(i);
+        ////                                    if (usedwords.Contains(1639)&&i==127)
+        ////                                    {
+
+        ////                                    }
+        ////                                        RecursivePhraseFinder(newLevel, usedWordsNow, currentvalue);
+                                            
+        ////                                }
+
+        ////                            }
+        ////                        });
+        ////                }
+
+        ////                Task.WaitAll(tasks);
+        ////            }
+        ////        }
+        ////        else if (usedwords.Any() && currentphraseValue == phraseValue)
+        ////        {
+        ////            var phrase = string.Join(" ", usedwords.Select(x => stringwordsList[x]));
+        ////            var encryptedString = Utilities.MD5Hash(phrase);
+        ////            if (secretphases.Contains(encryptedString))
+        ////            {
+        ////                Console.Write("\nFound " + encryptedString + " of " + phrase + " in " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
+        ////                List.Add(phrase);
+        ////                if (List.Count() < secretphases.Count())
+        ////                {
+        ////                    Console.WriteLine("started finding next one");
+        ////                }
+        ////                else
+        ////                {
+        ////                    Console.WriteLine("Founded All phases");
+        ////                    Console.WriteLine("\nPress any key to exit.");
+        ////                    Console.ReadLine();
+        ////                }
+        ////            }
+        ////        }
+        ////    }
+            
+        ////}
     }
 }
