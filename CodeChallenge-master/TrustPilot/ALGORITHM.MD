@@ -130,7 +130,7 @@ Let's have another look at the permutations from the previous section
 |  a|  a|  a| ab| ab|  b|
 |  a| ab|  b| ab|  b|  b|
 
-Let's assume the solution to our problem is "b b". After generating permutation 1, we can see that the first word is "a", so permutation 1 cannot be our solution. We can then skip directly to permutation 4, because permutations 2 and 3 start with "a" as well. At permutation 4 we notice again that the first word "ab" cannot be part of the solution, so we skip to permutation 6.
+Let's assume the solution to our problem is "b b". After generating permutation 1, we can see that the first word is "a", so permutation 1 cannot be our solution. We can then skip directly to permutation 4, because permutations 2 and 3 start with "a" as well. At permutation 4 we notice again that the first word "ab" cannot be part of the solution, so we s   kip to permutation 6.
 
 However, we can do better than this, if we notice the similarities between words. For example, "a" is part of "ab", so it is safe to say that if "a" is not part of the solution, then neither can "ab". So in the previous example, after we notice that permutation 1 is not valid, we can skip directly to permutation 6.
 
