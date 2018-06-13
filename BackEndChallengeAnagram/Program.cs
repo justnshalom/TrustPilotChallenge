@@ -21,6 +21,7 @@ namespace BackEndChallengeAnagram
         private static int maxLevel=4;
         private static double phraseValue;
         private static Dictionary<char,int> chracterGroup;
+        private static Dictionary<int, List<int>> WordsAllowedToFollow;
         private static List<int> singleCharactersStarting;
         private static List<double> integerwordsList;
         private static List<int> integercharacterLengthList;
@@ -51,7 +52,9 @@ namespace BackEndChallengeAnagram
             integercharacterLengthList = allowedWordList.Select(x => x.Key.Length).ToList();
             phraseValue = chracterGroup.Sum(x => alphabetsList[x.Key] * x.Value);
             singleCharactersStarting = allAlphabetsInAnagram.OrderBy(x => x).Select(x => FirstIndexMatch(x.ToString())).ToList();
-
+            
+            var allwordsintegertoallow = integerwordsList.Select((x,i) => i).ToList();
+            WordsAllowedToFollow = allwordsintegertoallow.ToDictionary((x) => x,  x=> allwordsintegertoallow.Where(y=> isAllowThisWord(allowedWordList[stringwordsList[x]], allowedWordList[stringwordsList[y]])).ToList());
             ////var validwords=integerwordsList.SelectMany(x => x == phraseValue?x: x < phraseValue?integerwordsList.Where(y => x+y< phraseValue && &integerwordsList.Where(z => x + z < phraseValue);
 
             timer = Stopwatch.StartNew();
@@ -60,7 +63,7 @@ namespace BackEndChallengeAnagram
 
 
 
-            RecursivePhraseFinder(0, new List<int>(), 0,0, chracterGroup, characterLength);
+            RecursivePhraseFinder(0, new List<int>(), 0,0, chracterGroup, characterLength, allwordsintegertoallow);
             Console.WriteLine("\nPress any key to exit.");
             Console.Write("\nENd in " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
             Console.ReadLine();
@@ -92,7 +95,7 @@ namespace BackEndChallengeAnagram
             return true;
         }
 
-        private static void RecursivePhraseFinder(int level, List<int> usedwords, double currentphraseValue, int currenti, Dictionary<char, int> newrequiredcharacters,int newrequiredcharacterlength)
+        private static void RecursivePhraseFinder(int level, List<int> usedwords, double currentphraseValue, int currenti, Dictionary<char, int> newrequiredcharacters,int newrequiredcharacterlength, List<int> allowedWords)
         {
         
             if (!FoundAllWords)
@@ -113,25 +116,29 @@ namespace BackEndChallengeAnagram
                             tasks[taskNumber] = Task.Factory.StartNew(
                                 () =>
                                     {
-                                        var max = integerwordsList.Count * (taskNumberCopy + 1) / degreeOfParallelism;
-                                        var startsfrom = (integerwordsList.Count * taskNumberCopy / degreeOfParallelism);
+                                        var max = allowedWords.Count * (taskNumberCopy + 1) / degreeOfParallelism;
+                                        var startsfrom = (allowedWords.Count * taskNumberCopy / degreeOfParallelism);
                                         if (currenti > startsfrom)
                                         {
                                             startsfrom = currenti;
                                         }
                                         ////var lastdisabledword = "";
 
-                                        Parallel.For(startsfrom, max, (i) =>
+                                        Parallel.For(startsfrom, max, (i1) =>
                                         {
+                                            
+                                            var i = allowedWords[i1];
                                             var disqualifiedobjects = new List<int>();
+                                            
                                             var currentvalue = integerwordsList[i] + currentphraseValue;
                                             var currentcharacterLength = integercharacterLengthList[i];
                                             var currentCharacterArray = allowedWordList[stringwordsList[i]];
 
                                             ////isAllowThisWord(currentCharacterArray, newrequiredcharacters)
                                             /////if (currentcharacterLength < newrequiredcharacterlength && currentvalue <= phraseValue && !currentCharacterArray.Any(z => z.Value > newrequiredcharacters[z.Key]))
-                                                if (currentcharacterLength < newrequiredcharacterlength && currentvalue <= phraseValue && isAllowThisWord(currentCharacterArray, newrequiredcharacters))
-                                        {
+                                           
+                                                if (currentcharacterLength < newrequiredcharacterlength && currentvalue <= phraseValue)
+                                                {
                                                     var usedWordsNow = new List<int>();
                                                     usedWordsNow.AddRange(usedwords);
                                                     usedWordsNow.Add(i);
@@ -148,11 +155,10 @@ namespace BackEndChallengeAnagram
                                                             requiredcharacters.Add(x.Key, x.Value);
                                                         }
                                                     };
-                                                    RecursivePhraseFinder(newLevel, usedWordsNow, currentvalue, i, requiredcharacters, requiredCharacterLength);
-                                            }else
-                                            {
-
-                                            }
+                                                var allowedwordstothis = WordsAllowedToFollow[i];
+                                                    RecursivePhraseFinder(newLevel, usedWordsNow, currentvalue, i, requiredcharacters, requiredCharacterLength, allowedwordstothis);
+                                                }
+                                               
                                                 ////else if (integercharacterLengthList[i] == 1)
                                                 ////{
                                                 ////    var newindex = singleCharactersStarting.FindIndex(x => x == i) + 1;
