@@ -87,11 +87,28 @@ namespace BackEndChallengeAnagram
         public static List<string> List=new List<string>();
 
         public static List<List<int>> permutations = new List<List<int>>();
-        private static bool isAllowThisWord(Dictionary<char, int> currentCharacterArray, Dictionary<char, int> newrequiredcharacters)
+     
+        private static bool isAllowThisWord(Dictionary<char, int> firstArray, Dictionary<char, int> secondArray)
         {
-            foreach(var x in currentCharacterArray) {
-                if(x.Value > newrequiredcharacters[x.Key]) return false;
-            };
+            secondArray.ToList().ForEach(x =>
+                {
+                    if (firstArray.ContainsKey(x.Key))
+                    {
+                        firstArray[x.Key] += x.Value;
+                    }
+                    else
+                    {
+                        firstArray.Add(x.Key, x.Value);
+                    }
+                });
+            foreach (var x in firstArray)
+            {
+                if (x.Value > chracterGroup[x.Key])
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -156,8 +173,11 @@ namespace BackEndChallengeAnagram
                                                         }
                                                     };
                                                 var allowedwordstothis = WordsAllowedToFollow[i];
-
-                                                /////one.Intersect(second)
+                                                    if (level != 0)
+                                                    {
+                                                        allowedwordstothis.Intersect(allowedWords);
+                                                    }
+                                                    
                                                     RecursivePhraseFinder(newLevel, usedWordsNow, currentvalue, i, requiredcharacters, requiredCharacterLength, allowedwordstothis);
                                                 }
                                                
