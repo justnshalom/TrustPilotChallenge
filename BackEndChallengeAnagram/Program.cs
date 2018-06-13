@@ -156,6 +156,8 @@ namespace BackEndChallengeAnagram
                                                         }
                                                     };
                                                 var allowedwordstothis = WordsAllowedToFollow[i];
+
+                                                /////one.Intersect(second)
                                                     RecursivePhraseFinder(newLevel, usedWordsNow, currentvalue, i, requiredcharacters, requiredCharacterLength, allowedwordstothis);
                                                 }
                                                
