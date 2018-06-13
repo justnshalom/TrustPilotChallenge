@@ -42,6 +42,7 @@ namespace TrustPilot
                     {
                         case 1:
                             Anagram.Hash = "e4820b45d2277f3844eac66c903e84be";
+                            ///Anagram.Hash = "257b05801f513427d951b1d402fd51a8";
                             Console.WriteLine("\n\nGenerating permutations of words...");
                             break;
                         case 2:

@@ -18,7 +18,7 @@ namespace BackEndChallengeAnagram
         private static int wordsLength;
         private static int anagramLength;
         private static int characterLength;
-        private static int maxLevel=3;
+        private static int maxLevel=4;
         private static double phraseValue;
         private static Dictionary<char,int> chracterGroup;
         private static List<int> singleCharactersStarting;
@@ -41,7 +41,7 @@ namespace BackEndChallengeAnagram
             allAlphabetsInAnagram = anagramPhraseCharacters.Where(x => x != ' ').Distinct().ToList();
             ////var mutationstring = GetPermutations(anagramPhrase);
             var wordList= File.ReadLines("../../wordlist.text").ToArray();
-            var expectedStringLength = anagramLength - ((wordsLength - 1) * 2);
+            var expectedStringLength = characterLength-7;
 
             var alphabetsList = allAlphabetsInAnagram.Select((x, i) => new { Item = x, Index = i }).ToDictionary(x => x.Item, x => Math.Pow(10, x.Index));
 
@@ -84,6 +84,13 @@ namespace BackEndChallengeAnagram
         public static List<string> List=new List<string>();
 
         public static List<List<int>> permutations = new List<List<int>>();
+        private static bool isAllowThisWord(Dictionary<char, int> currentCharacterArray, Dictionary<char, int> newrequiredcharacters)
+        {
+            foreach(var x in currentCharacterArray) {
+                if(x.Value > newrequiredcharacters[x.Key]) return false;
+            };
+            return true;
+        }
 
         private static void RecursivePhraseFinder(int level, List<int> usedwords, double currentphraseValue, int currenti, Dictionary<char, int> newrequiredcharacters,int newrequiredcharacterlength)
         {
@@ -113,42 +120,47 @@ namespace BackEndChallengeAnagram
                                             startsfrom = currenti;
                                         }
                                         ////var lastdisabledword = "";
-                                        for (int i = startsfrom;
-                                        i < max;
-                                        i++)
+
+                                        Parallel.For(startsfrom, max, (i) =>
                                         {
                                             var disqualifiedobjects = new List<int>();
-                                        var currentvalue = integerwordsList[i] + currentphraseValue;
-                                        var currentcharacterLength = integercharacterLengthList[i];
-                            var currentCharacterArray = allowedWordList[stringwordsList[i]];
+                                            var currentvalue = integerwordsList[i] + currentphraseValue;
+                                            var currentcharacterLength = integercharacterLengthList[i];
+                                            var currentCharacterArray = allowedWordList[stringwordsList[i]];
 
-                                            if (currentcharacterLength < newrequiredcharacterlength && currentvalue <= phraseValue && !currentCharacterArray.Any(z => z.Value > newrequiredcharacters[z.Key]))
-                                            {
-                                                var usedWordsNow = new List<int>();
-                                                usedWordsNow.AddRange(usedwords);
-                                                usedWordsNow.Add(i);
-                                                var requiredcharacters = new Dictionary<char, int>();
-                                                var requiredCharacterLength = characterLength - integercharacterLengthList[i];
-                                                foreach (var x in chracterGroup)
-                                                {
-                                                    if (currentCharacterArray.ContainsKey(x.Key))
+                                            ////isAllowThisWord(currentCharacterArray, newrequiredcharacters)
+                                            /////if (currentcharacterLength < newrequiredcharacterlength && currentvalue <= phraseValue && !currentCharacterArray.Any(z => z.Value > newrequiredcharacters[z.Key]))
+                                                if (currentcharacterLength < newrequiredcharacterlength && currentvalue <= phraseValue && isAllowThisWord(currentCharacterArray, newrequiredcharacters))
+                                        {
+                                                    var usedWordsNow = new List<int>();
+                                                    usedWordsNow.AddRange(usedwords);
+                                                    usedWordsNow.Add(i);
+                                                    var requiredcharacters = new Dictionary<char, int>();
+                                                    var requiredCharacterLength = characterLength - integercharacterLengthList[i];
+                                                    foreach (var x in chracterGroup)
                                                     {
-                                                        requiredcharacters[x.Key] = x.Value - currentCharacterArray[x.Key];
-                                                    }
-                                                    else
-                                                    {
-                                                        requiredcharacters.Add(x.Key, x.Value);
-                                                    }
-                                                }
-                                                ;
-                                                RecursivePhraseFinder(newLevel, usedWordsNow, currentvalue, i, requiredcharacters, requiredCharacterLength);
-                                            }
-                                            else if (integercharacterLengthList[i] == 1)
+                                                        if (currentCharacterArray.ContainsKey(x.Key))
+                                                        {
+                                                            requiredcharacters[x.Key] = x.Value - currentCharacterArray[x.Key];
+                                                        }
+                                                        else
+                                                        {
+                                                            requiredcharacters.Add(x.Key, x.Value);
+                                                        }
+                                                    };
+                                                    RecursivePhraseFinder(newLevel, usedWordsNow, currentvalue, i, requiredcharacters, requiredCharacterLength);
+                                            }else
                                             {
-                                                var newindex = singleCharactersStarting.FindIndex(x => x == i) + 1;
-                                                i = singleCharactersStarting.Contains(newindex) ? singleCharactersStarting[newindex] : i;
+
                                             }
-                                        }
+                                                ////else if (integercharacterLengthList[i] == 1)
+                                                ////{
+                                                ////    var newindex = singleCharactersStarting.FindIndex(x => x == i) + 1;
+                                                ////    i = singleCharactersStarting.Contains(newindex) ? singleCharactersStarting[newindex] : i;
+                                                ////}
+                                                //// i++;
+                                            
+                                        });
                                     });
                         }
 
@@ -160,8 +172,11 @@ namespace BackEndChallengeAnagram
                     var phrase = string.Join(" ", usedwords.Select(x => stringwordsList[x]));
                     var encryptedString = Utilities.MD5Hash(phrase);
                     permutations.Add(usedwords);
-                    Console.WriteLine("\n" + phrase + " " + permutations.Count + " " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
-
+                    if (permutations.Count % 250 == 0)
+                    {
+                        Console.WriteLine("\n" + phrase + " " + permutations.Count + " " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
+                    }
+                    ////if("e4820b45d2277f3844eac66c903e84be"==encryptedString)
                     if (secretphases.Contains(encryptedString))
                     {
                         Console.Write("\nFound " + encryptedString + " of " + phrase + " in " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
@@ -182,7 +197,8 @@ namespace BackEndChallengeAnagram
 
         }
 
-        
+       
+
         ////private static void RecursivePhraseFinder(int level, List<int> usedwords = null, double currentphraseValue = 0)
         ////{
         ////    if (!FoundAllWords)
