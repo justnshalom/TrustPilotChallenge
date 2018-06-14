@@ -102,6 +102,7 @@
             singleCharactersStarting = allAlphabetsInAnagram.OrderBy(x => x).Select(x => FirstIndexMatch(x.ToString())).ToList();
 
             var allwordsintegertoallow = integerwordsList.Select((x, i) => i).ToList();
+
             WordsAllowedToFollow = allwordsintegertoallow.ToDictionary(x => x, x => allwordsintegertoallow.Where(y => isAllowThisWord(allowedWordList[stringwordsList[x]], allowedWordList[stringwordsList[y]])).ToList());
 
             ////var validwords=integerwordsList.SelectMany(x => x == phraseValue?x: x < phraseValue?integerwordsList.Where(y => x+y< phraseValue && &integerwordsList.Where(z => x + z < phraseValue);
@@ -109,15 +110,21 @@
 
             ////RecursivePhraseFinder(string.Empty, 0);
             Console.WriteLine("started finding first one");
-
-            RecursivePhraseFinder(0, new List<int>(), 0, 0, chracterGroup, characterLength, allwordsintegertoallow);
+            for (int i1 = 0; i1 < integerwordsList.Count; i1++)
+            {
+                RecursivePhraseFinder(1, new List<int>() { i1 }, integerwordsList[i1], i1, characterLength-integercharacterLengthList[i1]);
+            }
             Console.WriteLine("\nPress any key to exit.");
             Console.Write("\nENd in " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
             Console.ReadLine();
         }
 
-        private static void RecursivePhraseFinder(int level, List<int> usedwords, double currentphraseValue, int currenti, Dictionary<char, int> newrequiredcharacters, int newrequiredcharacterlength, List<int> allowedWords)
+        private static void RecursivePhraseFinder(int level, List<int> usedwords, double currentphraseValue, int currenti, int newrequiredcharacterlength)
         {
+            if (level == 1&&currenti==2)
+            {
+
+            }
             if (!FoundAllWords)
                 if (currentphraseValue < phraseValue)
                 {
@@ -134,7 +141,12 @@
                     if (newLevel <= maxLevel)
                     {
                         var degreeOfParallelism = Environment.ProcessorCount / 2;
-
+                        var allowedWords = WordsAllowedToFollow[currenti];
+                        if (level != 0)
+                        {
+                            /////allowedwordstothis = allowedwordstothis.Intersect(allowedWords).ToList();
+                        }
+                        ////var currentCharacterArray = allowedWordList[stringwordsList[i]];
                         var startsfrom = 0;
                         var max = allowedWords.Count;
                         ////var tasks = new Task[degreeOfParallelism];
@@ -162,15 +174,11 @@
                                         {
                                             
                                                     var i = allowedWords[i1];
-                                                    var disqualifiedobjects = new List<int>();
+                                                    ////var disqualifiedobjects = new List<int>();
 
                                                     var currentvalue = integerwordsList[i] + currentphraseValue;
                                                     var currentcharacterLength = integercharacterLengthList[i];
-                                                    var currentCharacterArray = allowedWordList[stringwordsList[i]];
-
-                                                    ////isAllowThisWord(currentCharacterArray, newrequiredcharacters)
-                                                    /////if (currentcharacterLength < newrequiredcharacterlength && currentvalue <= phraseValue && !currentCharacterArray.Any(z => z.Value > newrequiredcharacters[z.Key]))
-                                                    if (currentcharacterLength < newrequiredcharacterlength && currentvalue <= phraseValue)
+                                                    if (currentcharacterLength <= newrequiredcharacterlength && currentvalue <= phraseValue)
                                                     {
                                                         if (level == 1)
                                                         {
@@ -193,20 +201,44 @@
                                                         var usedWordsNow = new List<int>();
                                                         usedWordsNow.AddRange(usedwords);
                                                         usedWordsNow.Add(i);
-                                                        var requiredcharacters = new Dictionary<char, int>();
-                                                        var requiredCharacterLength = characterLength - integercharacterLengthList[i];
-                                                        foreach (var x in chracterGroup)
-                                                            if (currentCharacterArray.ContainsKey(x.Key)) requiredcharacters[x.Key] = x.Value - currentCharacterArray[x.Key];
-                                                            else requiredcharacters.Add(x.Key, x.Value);
-                                                        var allowedwordstothis = WordsAllowedToFollow[i];
-                                                        if (level != 0)
-                                                        {
-                                                            allowedwordstothis = allowedwordstothis.Intersect(allowedWords).ToList();
-                                                        }
+                                                        ////var requiredcharacters = new Dictionary<char, int>();
+                                                        var requiredCharacterLength = newrequiredcharacterlength - integercharacterLengthList[i];
+                                ////foreach (var x in chracterGroup)
+                                ////    if (currentCharacterArray.ContainsKey(x.Key)) requiredcharacters[x.Key] = x.Value - currentCharacterArray[x.Key];
+                                ////    else requiredcharacters.Add(x.Key, x.Value);
+                                ////var phrase = string.Join(" ", usedwords.Select(x => stringwordsList[x]));
+                                ////Console.Write("\n" + phrase);
+                                if (requiredCharacterLength > 0)
+                                {
+                                    RecursivePhraseFinder(newLevel, usedWordsNow, currentvalue, i, requiredCharacterLength);
+                                }else 
+                                if(currentvalue == phraseValue&&requiredCharacterLength == 0)
+                                {
+                                    var phrase = string.Join(" ", usedwords.Select(x => stringwordsList[x]));
+                                    var encryptedString = Utilities.MD5Hash(phrase);
+                                    permutations.Add(usedwords);
+                                    if (permutations.Count % 100 == 0)
+                                    {
+                                        Console.WriteLine("\n" + phrase + " " + permutations.Count + " " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
+                                    }
 
-                                                        ////var phrase = string.Join(" ", usedwords.Select(x => stringwordsList[x]));
-                                                        ////Console.Write("\n" + phrase);
-                                                        RecursivePhraseFinder(newLevel, usedWordsNow, currentvalue, i, requiredcharacters, requiredCharacterLength, allowedwordstothis);
+                                    ////if("e4820b45d2277f3844eac66c903e84be"==encryptedString)
+                                    if (secretphases.Contains(encryptedString))
+                                    {
+                                        Console.Write("\nFound " + encryptedString + " of " + phrase + " in " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
+                                        List.Add(phrase);
+                                        if (List.Count() < secretphases.Count())
+                                        {
+                                            Console.WriteLine("\nstarted finding next one");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("\nFounded All phases");
+                                            Console.WriteLine("\nPress any key to exit.");
+                                            Console.ReadLine();
+                                        }
+                                    }
+                                }
                                                     }
 
                                                     ////else if (integercharacterLengthList[i] == 1)
@@ -224,33 +256,33 @@
                     ////    Task.WaitAll(tasks);
                     }
                 }
-                else if (usedwords.Any() && currentphraseValue == phraseValue)
-                {
-                    var phrase = string.Join(" ", usedwords.Select(x => stringwordsList[x]));
-                    var encryptedString = Utilities.MD5Hash(phrase);
-                    permutations.Add(usedwords);
-                    if (permutations.Count % 10 == 0)
-                    {
-                        Console.WriteLine("\n" + phrase + " " + permutations.Count + " " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
-                    }
+                ////else if (usedwords.Any() && currentphraseValue == phraseValue)
+                ////{
+                ////    var phrase = string.Join(" ", usedwords.Select(x => stringwordsList[x]));
+                ////    var encryptedString = Utilities.MD5Hash(phrase);
+                ////    permutations.Add(usedwords);
+                ////    if (permutations.Count % 100 == 0)
+                ////    {
+                ////        Console.WriteLine("\n" + phrase + " " + permutations.Count + " " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
+                ////    }
 
-                    ////if("e4820b45d2277f3844eac66c903e84be"==encryptedString)
-                    if (secretphases.Contains(encryptedString))
-                    {
-                        Console.Write("\nFound " + encryptedString + " of " + phrase + " in " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
-                        List.Add(phrase);
-                        if (List.Count() < secretphases.Count())
-                        {
-                            Console.WriteLine("\nstarted finding next one");
-                        }
-                        else
-                        {
-                            Console.WriteLine("\nFounded All phases");
-                            Console.WriteLine("\nPress any key to exit.");
-                            Console.ReadLine();
-                        }
-                    }
-                }
+                ////    ////if("e4820b45d2277f3844eac66c903e84be"==encryptedString)
+                ////    if (secretphases.Contains(encryptedString))
+                ////    {
+                ////        Console.Write("\nFound " + encryptedString + " of " + phrase + " in " + timer.Elapsed.TotalSeconds.ToString("F4", culture) + " seconds");
+                ////        List.Add(phrase);
+                ////        if (List.Count() < secretphases.Count())
+                ////        {
+                ////            Console.WriteLine("\nstarted finding next one");
+                ////        }
+                ////        else
+                ////        {
+                ////            Console.WriteLine("\nFounded All phases");
+                ////            Console.WriteLine("\nPress any key to exit.");
+                ////            Console.ReadLine();
+                ////        }
+                ////    }
+                ////}
         }
 
         ////private static void RecursivePhraseFinder(int level, List<int> usedwords = null, double currentphraseValue = 0)
