@@ -133,33 +133,33 @@ namespace BackEndChallengeAnagram
         /// <summary>Initialize to find secret phrases.</summary>
         public static void InitializeAnagram()
         {
-            ////Step 1: Convert anagram phrase to character array.
+            ////Step 2.1: Convert anagram phrase to character array.
             var anagramPhraseCharacters = anagramPhrase.ToCharArray().ToList();
-            ////Step 2: Remove spaces from the above character array. 
+            ////Step 2.2: Remove spaces from the above character array. 
             var alphabetsCharacters = anagramPhraseCharacters.Where(x => x != ' ').ToArray();
-            ////Step 3: Find the length of character array without spaces. 
+            ////Step 2.3: Find the length of character array without spaces. 
             anagramCharacterLength = alphabetsCharacters.Count();
-            ////Step 4: Group the characters and store the count of each characters as the value.   
+            ////Step 2.4: Group the characters and store the count of each characters as the value.   
             anagramCharactersGroup = alphabetsCharacters.GroupBy(x => x).ToList().ToDictionary(x => x.FirstOrDefault(), x => x.Count());
-            ////Step 5: Find the distinct characters of the phrase 
+            ////Step 2.5: Find the distinct characters of the phrase 
             alphabetsInAnagram = alphabetsCharacters.Distinct().ToArray();
-            ////Step 6: Fetch the word list from the file
+            ////Step 2.6: Fetch the word list from the file
             var wordList = File.ReadLines("../../wordlist.text").ToArray();
-            ////Step 7: Assign an integer value for each distinct phrase characters
+            ////Step 2.7: Assign an integer value for each distinct phrase characters
             var alphabetsList = alphabetsInAnagram.Select((x, i) => new { Item = x, Index = i }).ToDictionary(x => x.Item, x => Math.Pow(10, x.Index));
-            ////Step 8: Removed unwanted words from words list and group the characters and store the count of each characters as the value in all words.  
+            ////Step 2.8: Removed unwanted words from words list and group the characters and store the count of each characters as the value in all words.  
             filteredWordList = wordList.Distinct().OrderByDescending(l => l.Length).ToList().ToDictionary(x => x, x => x.ToCharArray().Select(c => c).GroupBy(g => g).ToList().ToDictionary(d => d.FirstOrDefault(), d => d.Count())).Where(x => x.Key.Length <= anagramCharacterLength && x.Value.All(y => alphabetsInAnagram.Contains(y.Key)) && !x.Value.Any(z => z.Value > anagramCharactersGroup[z.Key])).ToDictionary(x => x.Key, x => x.Value);
-            ////Step 9: Store words list as a list
+            ////Step 2.9: Store words list as a list
             stringwordsList = filteredWordList.Select(x => x.Key).ToArray();
-            ////Step 10: Assign value as Step 7 to each words in the list(step 8)
+            ////Step 2.10: Assign value as Step 2.7 to each words in the list(step 2.8)
             integerWordsList = filteredWordList.Select(x => x.Value.Sum(y => alphabetsList[y.Key] * y.Value)).ToArray();
-            ////Step 11: Store the character length of each words list(step 8)
+            ////Step 2.11: Store the character length of each words list(step 2.8)
             integerCharacterLengthList = filteredWordList.Select(x => x.Key.Length).ToArray();
-            ////Step 12: Calculate the integer value of phrase as Step 7
+            ////Step 2.12: Calculate the integer value of phrase as Step 2.7
             phraseValue = anagramCharactersGroup.Sum(x => alphabetsList[x.Key] * x.Value);
-            ////Step 13: Store all index values of words
+            ////Step 2.13: Store all index values of words
             filteredWordsIndex = integerWordsList.Select((x, i) => i).ToList();
-            ////Step 14: Find all matching words of each words by checking the character limit of words 
+            ////Step 2.14: Find all matching words of each words by checking the character limit of words 
             wordsAllowedToFollow = filteredWordsIndex.ToDictionary(x => x, x => filteredWordsIndex.Where(y => y >= x && IsAllowThisWord(filteredWordList[stringwordsList[x]], filteredWordList[stringwordsList[y]])).ToList());
         }
 
@@ -190,8 +190,15 @@ namespace BackEndChallengeAnagram
         internal static void GeneratePermutationsAndFindPhrases()
         {
             timer = Stopwatch.StartNew();
+            ////Step 4.1: Loop through all filtered words
             for (int i1 = 0; i1 < integerWordsList.Length; i1++)
             {
+                //// Step 4.1.1: Call recursive function with following arguments:
+                //// Words Count        :   Count of words using to generate permutation in this section.
+                //// Used Words         :   Words that used to in this section to  generate permutation.
+                //// Words Value        :   Calculated value of used words in this section as step 2.7.
+                //// Word Index         :   Index of current word.
+                //// Required Length    :   Remaining character Length to  generate permutation.
                 RecursivePhraseFinder(1, new List<int>() { i1 }, integerWordsList[i1], i1, anagramCharacterLength - integerCharacterLengthList[i1]);
             }
         }
@@ -204,17 +211,21 @@ namespace BackEndChallengeAnagram
         /// <param name="requiredCharacterLength">The required Character Length Now.</param>
         internal static void RecursivePhraseFinder(int wordsCount, List<int> usedWords, double usedWordsValue, int wordIndex, int requiredCharacterLength)
         {
-            ////Step 1: Check whether find all secret phrases or not 
+            ////Step 4.1.1.1: Check whether not found all secret phrases
             if (!IsFoundAllSecretPhrases)
             {
                 var newWordsCount = wordsCount + 1;
+                ////Step 4.1.1.1.1: Check the words length is exceeds the limit or not as Step 3 choice
+                if (newWordsCount > MaxWordCount)
+                {
+                    ////Step 4.1.1.1.1.1: Stop the current section
+                    return;
+                }
+                
+                ////Step 4.1.1.1.2: Check the remaining character length of generated permutation is greater than 0 to concatenate more words
                 if (usedWordsValue < phraseValue && requiredCharacterLength > 0)
                 {
-                    if (newWordsCount > MaxWordCount)
-                    {
-                        return;
-                    }
-                    
+                    ////Step 4.1.1.1.2.1: Find allowed words that matching to the used words to generate permutations
                     var allowedWords = wordsAllowedToFollow[wordIndex];
                     Parallel.For(
                         0,
@@ -224,6 +235,7 @@ namespace BackEndChallengeAnagram
                                 allowedWords = allowedWords.Intersect(wordsAllowedToFollow[usedWords[i]]).ToList();
                             });
                     allowedWords = allowedWords.Where(x => integerCharacterLengthList[x] <= requiredCharacterLength && integerCharacterLengthList[x] + usedWordsValue <= phraseValue).ToList();
+                    
                     var tasks = new Task[ProcessorDivision];
 
                     for (var taskNumber = 0; taskNumber < ProcessorDivision; taskNumber++)
@@ -234,11 +246,13 @@ namespace BackEndChallengeAnagram
                                 {
                                     var max = allowedWords.Count * (taskNumberCopy + 1) / ProcessorDivision;
                                     var startsfrom = allowedWords.Count * taskNumberCopy / ProcessorDivision;
+                                    ////Step 4.1.1.1.2.2: Loop through all allowed words to join more words to generate permutation
                                     Parallel.For(
                                         startsfrom,
                                         max,
                                         i1 =>
                                             {
+                                                //// Step 4.1.1.1.2.3: Go to step  Step 4.1.1 with generated values in the current section.
                                                 var i = allowedWords[i1];
                                                 var usedWordsNow = new List<int>();
                                                 usedWordsNow.AddRange(usedWords);
@@ -252,6 +266,8 @@ namespace BackEndChallengeAnagram
                 }
                 else if (usedWordsValue == phraseValue && requiredCharacterLength == 0)
                 {
+                    ////Step 4.1.1.2: Check the character length of generated permutation is equal to the phrase character length.
+                    ////Step 4.1.1.2.1: Generate permutations from the allowed list of words matching to the phrase.
                     GeneratePermutations(usedWords);
                 }
             }
