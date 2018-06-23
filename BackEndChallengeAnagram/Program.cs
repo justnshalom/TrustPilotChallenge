@@ -17,15 +17,15 @@ namespace BackEndChallengeAnagram
         /// <summary>The main function.</summary>
         public static void Main()
         {
-            ////Step 1: Fetch User Choices to find anagram.
+            //// Step 1: Fetch User Choices to find anagram.
             Anagram.FetchUserChoices();
-            ////Step 2: Initialize anagram.
+            //// Step 2: Initialize anagram.
             Anagram.InitializeAnagram();
-            ////Step 3: Take words count choices from User.
+            //// Step 3: Take words count choices from User.
             Anagram.FetchWordsCountChoice();
-            ////Step 4: Proceed to make permutations to find secret phrases.
+            //// Step 4: Proceed to make permutations to find secret phrases.
             Anagram.GeneratePermutationsAndFindPhrases();
-            ////Step 5: Log time of end details.
+            //// Step 5: Log time of end details.
             Console.ForegroundColor = ConsoleColor.White;
             if (!Anagram.IsFoundAllSecretPhrases)
             {
