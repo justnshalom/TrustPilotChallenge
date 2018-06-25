@@ -21,7 +21,7 @@ namespace BackEndChallengeAnagram
             Anagram.FetchUserChoices();
             //// Step 2: Initialize anagram.
             Anagram.InitializeAnagram();
-            //// Step 3: Take words count choices from User.
+            //// Step 3: Obtain the word limit from the User.
             Anagram.FetchWordsCountChoice();
             //// Step 4: Proceed to make permutations to find secret phrases.
             Anagram.GeneratePermutationsAndFindPhrases();

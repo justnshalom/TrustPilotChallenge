@@ -19,7 +19,7 @@ namespace BackEndChallengeAnagram
         /// <summary>Get md5 hash value.</summary>
         /// <param name="input">The input.</param>
         /// <returns>The <see cref="string"/>.</returns>
-        public static string MD5Hash(string input)
+        public static string Md5Hash(string input)
         {
             MD5CryptoServiceProvider md5Hasher = new MD5CryptoServiceProvider();
             var utf8Encoding = new UTF8Encoding();

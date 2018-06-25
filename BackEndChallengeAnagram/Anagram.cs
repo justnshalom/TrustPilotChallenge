@@ -18,10 +18,10 @@ namespace BackEndChallengeAnagram
 
     /// <summary>The library to find secret phrases.</summary>
     public class Anagram
-    {   
+    {
         /// <summary>The processor division.</summary>
         private static readonly int ProcessorDivision;
-        
+
         /// <summary>The filtered word list.</summary>
         private static Dictionary<string, Dictionary<char, int>> filteredWordList;
 
@@ -39,10 +39,10 @@ namespace BackEndChallengeAnagram
 
         /// <summary>The founded secret phrases.</summary>
         private static List<string> secretPhrases;
-        
+
         /// <summary>The alphabets in anagram.</summary>
         private static char[] alphabetsInAnagram;
-        
+
         /// <summary>The filtered words index.</summary>
         private static List<int> filteredWordsIndex;
 
@@ -58,15 +58,15 @@ namespace BackEndChallengeAnagram
         /// <summary>The secret phrases hash values.</summary>
         private static string[] secretPhrasesHashValues = new string[3] { "e4820b45d2277f3844eac66c903e84be", "23170acc097c24edb98fc5488ab033fe", "665e5bcb0c20062fe8abaaf4628bb154" };
 
-        /// <summary>The stringwords list.</summary>
-        private static string[] stringwordsList;
+        /// <summary>The string words list.</summary>
+        private static string[] stringWordsList;
 
         /// <summary>The timer.</summary>
         private static Stopwatch timer = Stopwatch.StartNew();
 
         /// <summary>The words allowed to follow.</summary>
         private static Dictionary<int, List<int>> wordsAllowedToFollow;
-        
+
         /// <summary>The anagram character length.</summary>
         private static int anagramCharacterLength;
 
@@ -76,10 +76,7 @@ namespace BackEndChallengeAnagram
         /// <summary>Initializes static members of the <see cref="Anagram"/> class.</summary>
         static Anagram()
         {
-            secretPhrases = new List<string>();
             ProcessorDivision = Environment.ProcessorCount / 2;
-            timeLog = new List<string>();
-            generatedPermutations = new List<List<int>>();
             MaxWordCount = 4;
         }
 
@@ -88,7 +85,7 @@ namespace BackEndChallengeAnagram
 
         /// <summary>Gets or sets a value indicating whether is found all words.</summary>
         internal static bool IsFoundAllSecretPhrases { get; set; }
-        
+
         /// <summary>Fetch user choices.</summary>
         public static void FetchUserChoices()
         {
@@ -139,35 +136,35 @@ namespace BackEndChallengeAnagram
             var alphabetsCharacters = anagramPhraseCharacters.Where(x => x != ' ').ToArray();
             //// Step 2.3: Find the length of character array without spaces. 
             anagramCharacterLength = alphabetsCharacters.Count();
-            //// Step 2.4: Group the characters and store the count of each characters as the value.   
+            //// Step 2.4: Group the characters and store the count of each character as the value.   
             anagramCharactersGroup = alphabetsCharacters.GroupBy(x => x).ToList().ToDictionary(x => x.FirstOrDefault(), x => x.Count());
-            //// Step 2.5: Find the distinct characters of the phrase 
+            //// Step 2.5: Find the distinct characters of the phrase .
             alphabetsInAnagram = alphabetsCharacters.Distinct().ToArray();
-            //// Step 2.6: Fetch the word list from the file
-            var wordList = File.ReadLines("../../wordlist.text").ToArray();
-            //// Step 2.7: Assign an integer value for each distinct phrase characters
+            //// Step 2.6: Fetch the word list from the file.
+            var wordList = File.ReadLines("../../wordList.text").ToArray();
+            //// Step 2.7: Assign an integer value for each distinct phrase characters.
             var alphabetsList = alphabetsInAnagram.Select((x, i) => new { Item = x, Index = i }).ToDictionary(x => x.Item, x => Math.Pow(10, x.Index));
-            //// Step 2.8: Removed unwanted words from words list and group the characters and store the count of each characters as the value in all words.  
+            //// Step 2.8: Remove unwanted words from words list, group the characters and store the count of each character as the value, in all words.  
             filteredWordList = wordList.Distinct().OrderByDescending(l => l.Length).ToList().ToDictionary(x => x, x => x.ToCharArray().Select(c => c).GroupBy(g => g).ToList().ToDictionary(d => d.FirstOrDefault(), d => d.Count())).Where(x => x.Key.Length <= anagramCharacterLength && x.Value.All(y => alphabetsInAnagram.Contains(y.Key)) && !x.Value.Any(z => z.Value > anagramCharactersGroup[z.Key])).ToDictionary(x => x.Key, x => x.Value);
-            //// Step 2.9: Store words list as a list
-            stringwordsList = filteredWordList.Select(x => x.Key).ToArray();
-            //// Step 2.10: Assign value as Step 2.7 to each words in the list(step 2.8)
+            //// Step 2.9: Store words list as a list.
+            stringWordsList = filteredWordList.Select(x => x.Key).ToArray();
+            //// Step 2.10: Assign value to each words in the list as per the integer value assigned in Step 2.7.
             integerWordsList = filteredWordList.Select(x => x.Value.Sum(y => alphabetsList[y.Key] * y.Value)).ToArray();
-            //// Step 2.11: Store the character length of each words list(step 2.8)
+            //// Step 2.11: Store the character length of each words list(step 2.8).
             integerCharacterLengthList = filteredWordList.Select(x => x.Key.Length).ToArray();
-            //// Step 2.12: Calculate the integer value of phrase as Step 2.7
+            //// Step 2.12: Calculate the integer value of phrase as per the integer value assigned in Step 2.7.
             phraseValue = anagramCharactersGroup.Sum(x => alphabetsList[x.Key] * x.Value);
-            //// Step 2.13: Store all index values of words
+            //// Step 2.13: Store all index values of words.
             filteredWordsIndex = integerWordsList.Select((x, i) => i).ToList();
-            //// Step 2.14: Find all matching words of each words by checking the character limit of words 
-            wordsAllowedToFollow = filteredWordsIndex.ToDictionary(x => x, x => filteredWordsIndex.Where(y => y >= x && IsAllowThisWord(filteredWordList[stringwordsList[x]], filteredWordList[stringwordsList[y]])).ToList());
+            //// Step 2.14: Find all matching words of each word by checking the character limit of words.
+            wordsAllowedToFollow = filteredWordsIndex.ToDictionary(x => x, x => filteredWordsIndex.Where(y => y >= x && IsAllowThisWord(filteredWordList[stringWordsList[x]], filteredWordList[stringWordsList[y]])).ToList());
         }
 
         /// <summary>The action to fetch words count choice.</summary>
         public static void FetchWordsCountChoice()
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("\nBy default it will generate 2 to " + MaxWordCount + " words, Do you continue(y) or need to increase the count of words(n) ?");
+            Console.WriteLine("\nBy default it will generate 2 to " + MaxWordCount + " words, Do you want to continue(y) or would you like to increase the count of words(n) ?");
             Console.ForegroundColor = ConsoleColor.White;
             string key3 = Console.ReadKey().Key.ToString();
             Console.WriteLine("\n--------------------------");
@@ -176,7 +173,13 @@ namespace BackEndChallengeAnagram
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("\nPlease Enter maximum generating words\n");
                 Console.ForegroundColor = ConsoleColor.White;
-                MaxWordCount = int.Parse(Console.ReadLine());
+                var wordCountByUser = Console.ReadLine();
+                int countArgument = 0;
+                if (wordCountByUser != null && int.TryParse(wordCountByUser, out countArgument))
+                {
+                    MaxWordCount = countArgument;
+                }
+
                 Console.WriteLine("\n--------------------------");
             }
 
@@ -189,53 +192,49 @@ namespace BackEndChallengeAnagram
         /// <summary>Proceed to generate permutations and find phrases.</summary>
         internal static void GeneratePermutationsAndFindPhrases()
         {
+            secretPhrases = new List<string>();
+            timeLog = new List<string>();
+            generatedPermutations = new List<List<int>>();
             timer = Stopwatch.StartNew();
             //// Step 4.1: Loop through all filtered words
             for (int i1 = 0; i1 < integerWordsList.Length; i1++)
             {
                 //// Step 4.1.1: Call recursive function with following arguments:
-                //// Words Count        :   Count of words using to generate permutation in this section.
-                //// Used Words         :   Words that used to in this section to  generate permutation.
-                //// Words Value        :   Calculated value of used words in this section as step 2.7.
-                //// Word Index         :   Index of current word.
-                //// Required Length    :   Remaining character Length to  generate permutation.
+                //// Words Count        :   Count of words used to generate permutation in this section.
+                //// Used Words         :   Words that are used in this section to  generate permutation.
+                //// Words Value        :   Calculated value of used words in this section as per the integer value assigned in Step 2.7.
+                //// Word Index         :    Index of current word.
+                //// Required Length    :    Number of characters remaining required to  generate permutations.
                 RecursivePhraseFinder(1, new List<int>() { i1 }, integerWordsList[i1], i1, anagramCharacterLength - integerCharacterLengthList[i1]);
             }
         }
 
         /// <summary>The recursive phrase finder.</summary>
-        /// <param name="wordsCount">The words Count.</param>
-        /// <param name="usedWords">The used words to find secret phrase.</param>
-        /// <param name="usedWordsValue">The current used words value.</param>
-        /// <param name="wordIndex">The index of words list.</param>
-        /// <param name="requiredCharacterLength">The required Character Length Now.</param>
+        /// <param name="wordsCount">Count of words used to generate permutation in this section.</param>
+        /// <param name="usedWords">Words that are used in this section to  generate permutation.</param>
+        /// <param name="usedWordsValue"> Calculated value of used words in this section.</param>
+        /// <param name="wordIndex">Index of current word.</param>
+        /// <param name="requiredCharacterLength">Number of characters remaining required to  generate permutations.</param>
         internal static void RecursivePhraseFinder(int wordsCount, List<int> usedWords, double usedWordsValue, int wordIndex, int requiredCharacterLength)
         {
-            //// Step 4.1.1.1: Check whether not found all secret phrases
+            //// Step 4.1.1.1: Check if all secret phrases has been found out.
             if (!IsFoundAllSecretPhrases)
             {
                 var newWordsCount = wordsCount + 1;
-                //// Step 4.1.1.1.1: Check the words length is exceeds the limit or not as Step 3 choice
-                if (newWordsCount > MaxWordCount)
+                //// Step 4.1.1.1.1: Check if the combined word length exceeds the limit or not as per Step 3. Also check if the remaining character length of the generated permutation is greater than 0 to combine more words.
+                if (newWordsCount <= MaxWordCount && usedWordsValue < phraseValue && requiredCharacterLength > 0)
                 {
-                    //// Step 4.1.1.1.1.1: Stop the current section
-                    return;
-                }
-                
-                //// Step 4.1.1.1.2: Check the remaining character length of generated permutation is greater than 0 to concatenate more words
-                if (usedWordsValue < phraseValue && requiredCharacterLength > 0)
-                {
-                    //// Step 4.1.1.1.2.1: Find allowed words that matching to the used words to generate permutations
+                    //// Step 4.1.1.1.1.1: Find allowed words that matches to the combined words to generate permutations.
                     var allowedWords = wordsAllowedToFollow[wordIndex];
                     Parallel.For(
                         0,
                         wordsCount - 1,
                         i =>
-                            {
-                                allowedWords = allowedWords.Intersect(wordsAllowedToFollow[usedWords[i]]).ToList();
-                            });
+                        {
+                            allowedWords = allowedWords.Intersect(wordsAllowedToFollow[usedWords[i]]).ToList();
+                        });
                     allowedWords = allowedWords.Where(x => integerCharacterLengthList[x] <= requiredCharacterLength && integerCharacterLengthList[x] + usedWordsValue <= phraseValue).ToList();
-                    
+
                     var tasks = new Task[ProcessorDivision];
 
                     for (var taskNumber = 0; taskNumber < ProcessorDivision; taskNumber++)
@@ -243,31 +242,29 @@ namespace BackEndChallengeAnagram
                         var taskNumberCopy = taskNumber;
                         tasks[taskNumber] = Task.Factory.StartNew(
                             () =>
-                                {
-                                    var max = allowedWords.Count * (taskNumberCopy + 1) / ProcessorDivision;
-                                    var startsfrom = allowedWords.Count * taskNumberCopy / ProcessorDivision;
-                                    //// Step 4.1.1.1.2.2: Loop through all allowed words to join more words to generate permutation
-                                    Parallel.For(
-                                        startsfrom,
-                                        max,
-                                        i1 =>
-                                            {
-                                                //// Step 4.1.1.1.2.3: Go to step  Step 4.1.1 with generated values in the current section.
-                                                var i = allowedWords[i1];
-                                                var usedWordsNow = new List<int>();
-                                                usedWordsNow.AddRange(usedWords);
-                                                usedWordsNow.Add(i);
-                                                RecursivePhraseFinder(newWordsCount, usedWordsNow, integerWordsList[i] + usedWordsValue, i, requiredCharacterLength - integerCharacterLengthList[i]);
-                                            });
-                                });
+                            {
+                                //// Step 4.1.1.1.1.2: Loop through all allowed words to join more words to generate permutation.
+                                Parallel.For(
+                                    allowedWords.Count * taskNumberCopy / ProcessorDivision,
+                                    allowedWords.Count * (taskNumberCopy + 1) / ProcessorDivision,
+                                    i1 =>
+                                    {
+                                        //// Step 4.1.1.1.2.3: Go to Step 4.1.1 with generated values in the current section.
+                                        var i = allowedWords[i1];
+                                        var usedWordsNow = new List<int>();
+                                        usedWordsNow.AddRange(usedWords);
+                                        usedWordsNow.Add(i);
+                                        RecursivePhraseFinder(newWordsCount, usedWordsNow, integerWordsList[i] + usedWordsValue, i, requiredCharacterLength - integerCharacterLengthList[i]);
+                                    });
+                            });
                     }
 
                     Task.WaitAll(tasks);
                 }
-                else if (usedWordsValue == phraseValue && requiredCharacterLength == 0)
+                else if (requiredCharacterLength == 0&& usedWordsValue == phraseValue)
                 {
-                    //// Step 4.1.1.2: Check the character length of generated permutation is equal to the phrase character length.
-                    //// Step 4.1.1.2.1: Generate permutations from the allowed list of words matching to the phrase.
+                    //// Step 4.1.1.2: Check if the character length of the generated permutation is equal to the phrase character length.
+                    //// Step 4.1.1.2.1: Generate permutations from the combined words, and check if it is matching with hash value.
                     GeneratePermutations(usedWords);
                 }
             }
@@ -313,16 +310,16 @@ namespace BackEndChallengeAnagram
             secondArray.ToList()
                 .ForEach(
                     x =>
+                    {
+                        if (result.ContainsKey(x.Key))
                         {
-                            if (result.ContainsKey(x.Key))
-                            {
-                                result[x.Key] += x.Value;
-                            }
-                            else
-                            {
-                                result.Add(x.Key, x.Value);
-                            }
-                        });
+                            result[x.Key] += x.Value;
+                        }
+                        else
+                        {
+                            result.Add(x.Key, x.Value);
+                        }
+                    });
             return result.All(x => x.Value <= anagramCharactersGroup[x.Key]);
         }
 
@@ -334,29 +331,29 @@ namespace BackEndChallengeAnagram
             Parallel.ForEach(
                 Get(usedWords).ToList(),
                 (usedWordsNew) =>
-                    {
-                        generatedPermutations.Add(usedWordsNew);
-                var phrase = string.Join(" ", usedWordsNew.Select(x => stringwordsList[x]));
-                var hashValue = Utilities.MD5Hash(phrase);
-                if (secretPhrasesHashValues.Contains(hashValue))
                 {
-                    isFoundEncryptedKey = true;
-                    timeLog.Add("Elapsed " + ElapsedSeconds());
-                    secretPhrases.Add(phrase);
-                    if (secretPhrases.Count() == secretPhrasesHashValues.Count())
+                    generatedPermutations.Add(usedWordsNew);
+                    var phrase = string.Join(" ", usedWordsNew.Select(x => stringWordsList[x]));
+                    var hashValue = Utilities.Md5Hash(phrase);
+                    if (secretPhrasesHashValues.Contains(hashValue))
                     {
-                        IsFoundAllSecretPhrases = true;
+                        isFoundEncryptedKey = true;
+                        timeLog.Add("Elapsed " + ElapsedSeconds());
+                        secretPhrases.Add(phrase);
+                        if (secretPhrases.Count() == secretPhrasesHashValues.Count())
+                        {
+                            IsFoundAllSecretPhrases = true;
+                        }
                     }
-                }
-            });
+                });
             if (isFoundEncryptedKey || logIndex % 100 == 0)
             {
                 PrintSecretPhrases(isFoundEncryptedKey);
             }
-            
+
             logIndex++;
         }
-        
+
         /// <summary>The get.</summary>
         /// <param name="set">The set.</param>
         /// <param name="subset">The subset.</param>
@@ -395,11 +392,11 @@ namespace BackEndChallengeAnagram
             {
                 return;
             }
-            
+
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("\nGenerated " + CalculatePerSeconds(totalcount) + " - (" + ElapsedSeconds() + ")\n" + CalculatePerMinutes(totalcount) + " - (" + ElapsedMinutes() + ")");
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("\n" + string.Join("\n", secretPhrases.Select(x => "The anagram phrase of '" + Utilities.MD5Hash(x) + "' is '" + x + "' - " + timeLog[indexkey++])) + "\n");
+            Console.WriteLine("\n" + string.Join("\n", secretPhrases.Select(x => "The anagram phrase of '" + Utilities.Md5Hash(x) + "' is '" + x + "' - " + timeLog[indexkey++])) + "\n");
             if (!IsFoundAllSecretPhrases)
             {
                 Console.ForegroundColor = ConsoleColor.White;
